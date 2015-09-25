@@ -10,6 +10,7 @@
             echo phpversion() . " Olá mundo, prodemos programar";
         else:
             echo phpversion() . " Olá mundo, preciso atualizar o PHP";
+            echo phpinfo();
         endif;
         ?>
     </body>
