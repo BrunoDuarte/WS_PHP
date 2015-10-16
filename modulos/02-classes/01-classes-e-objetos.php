@@ -10,6 +10,7 @@
         
         $teste = new ClassesObjetos();
         $teste->getClass('de introducao', 'de mostrar uma classe');
+        $teste->verClass();
         ?>
     </body>
 </html>
