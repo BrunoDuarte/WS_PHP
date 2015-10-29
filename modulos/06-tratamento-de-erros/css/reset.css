@@ -1,36 +1,12 @@
-*{
-    font-weight: normal;
-    margin: 0;
-    padding: 0;
-}
-
-/*a:hover{
-    -webkit-transition: all 250ms ease 15ms;
-    -moz-transition: all 250ms ease 15ms;
-    -o-transition: all 250ms ease 15ms;
-    transition: all 250ms ease 15ms;
-}*/
-
-*:focus{outline:none;}
-
-a{text-decoration: none;}
-a img{border:none;}
-strong, b{font-weight: bold;}
-
-ul{list-style: none;}
-
-.radius{
-    -webkit-border-radius:8px;
-    -moz-border-radius:8px;
-    border-radius:8px;
-}
-
-.shadow{
-    -moz-box-shadow:0px 0px 5px #333;
-    -webkit-box-shadow:0px 0px 5px #333;
-    box-shadow:0px 0px 5px #333;
-}
-
-.clear{clear:both;}
-
-#tinymce .mceContentBody p { font-family: sans-serif; font-size: 18px; }
+/*
+    Created on  : 10/28/2015
+    Author      : Voicer Core
+*/
+/********** CSS TRIGGER **********/
+.trigger{position: relative; padding: 20px; color: #333; background: #ccc; border: 1px solid #333; font: 400 14px 'verdana', sans-serif;}
+.trigger{border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px;}
+.trigger .ajax_close{position: absolute; right: 10px; cursor: pointer; top: 10px; background: black; width: 20px; height: 20px; display: none;}
+.trigger.accept{background-color: #E5F8CE; border-color: #D0F1A6;}
+.trigger.info{background-color: #D1ECF7; border-color: #BCDFEF;}
+.trigger.alert{background-color: #FFF6BF; border-color: #FCEB77;}
+.trigger.error{background-color: #FAD0D0; border-color: #F6ABAB;}
