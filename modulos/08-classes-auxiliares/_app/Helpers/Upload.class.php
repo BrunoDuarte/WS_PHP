@@ -38,6 +38,7 @@ class Upload {
 
         $this->CheckFolder($this->Folder);
         $this->setFileName();
+        $this->UploadImage();
     }
 
     function getResult() {
@@ -69,6 +70,60 @@ class Upload {
             $FileName = Check::Name($this->Name) . '-' . time() . strrchr($this->File['name'], '.');
         endif;
         $this->Name = $FileName;
+    }
+
+    // REALIZA O UPLOAD DE IMAGENS REDIMENSIONANDO A MESMA!
+    private function UploadImage() {
+        switch ($this->File['type']):
+            case 'image/jpg':
+            case 'image/jpeg':
+            case 'image/pjpeg':
+                $this->Image = imagecreatefromjpeg($this->File['tmp_name']);
+                break;
+            case 'image/png':
+            case 'image/x-png':
+                $this->Image = imagecreatefrompng($this->File['tmp_name']);
+                break;
+        endswitch;
+        if (!$this->Image):
+            $this->Result = FALSE;
+            $this->Error = 'Tipo de arquivo inválido, envie imagens JPG ou PNG!';
+        else:
+            $x = imagesx($this->Image);
+            $y = imagesy($this->Image);
+            $ImageX = ($this->Width < $x ? $this->Width : $x );
+            $ImageH = ($ImageX * $y) / $x;
+
+            $NewImage = imagecreatetruecolor($ImageX, $ImageH);
+            imagealphablending($NewImage, FALSE);
+            imagesavealpha($NewImage, TRUE);
+            imagecopyresampled($NewImage, $this->Image, 0, 0, 0, 0, $ImageX, $ImageH, $x, $y);
+
+            switch ($this->File['type']):
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/pjpeg':
+                    imagejpeg($NewImage, self::$BaseDir . $this->Send . $this->Name);
+                    break;
+                case 'image/png':
+                case 'image/x-png':
+                    imagepng($NewImage, self::$BaseDir . $this->Send . $this->Name);
+                    break;
+            endswitch;
+
+            if (!$NewImage):
+                $this->Result = FALSE;
+                $this->Error = 'Tipo de arquivo inválido, envie imagens JPG ou PNG!';
+            else:
+                $this->Result = $this->Send . $this->Name;
+                $this->Error = NULL;
+            endif;
+
+            // Limpando o processo da memória depois de concluído
+            imagedestroy($this->Image);
+            imagedestroy($NewImage);
+
+        endif;
     }
 
 }
