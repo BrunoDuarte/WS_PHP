@@ -26,7 +26,8 @@ class Session {
             $this->setTraffic();
             $this->setSession();
         else:
-            $this->setSession();
+            $this->TrafficUpdate();
+            $this->sessionUpdate();
         endif;
 
         $this->Date = NULL;
@@ -44,19 +45,46 @@ class Session {
         ];
     }
 
+    // Atualiza sessão do usuário
+    private function sessionUpdate() {
+        $_SESSION['useronline']['online_endviews'] = date('Y-m-d H:m:s', strtotime("+{$this->Cache}minutes"));
+        $_SESSION['useronline']['online_url'] = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_DEFAULT);
+    }
+
     // Verifica e insere o tráfego na tabela
     private function setTraffic() {
         $this->getTraffic();
         if (!$this->Traffic):
-            $ArrSiteViews = ['siteviews_date' => $this->Date,
+            $ArrSiteViews = [
+                'siteviews_date' => $this->Date,
                 'siteviews_users' => 1,
                 'siteviews_views' => 1,
                 'siteviews_pages' => 1];
             $createSiteViews = new Create();
             $createSiteViews->ExeCreate('ws_siteviews', $ArrSiteViews);
         else:
+            if (!$this->getCookie()):
+                $ArrSiteViews = [
+                    'siteviews_users' => $this->Traffic['siteviews_users'] + 1,
+                    'siteviews_views' => $this->Traffic['siteviews_views'] + 1,
+                    'siteviews_pages' => $this->Traffic['siteviews_pages'] + 1];
+            else:
+                $ArrSiteViews = [
+                    'siteviews_views' => $this->Traffic['siteviews_views'] + 1,
+                    'siteviews_pages' => $this->Traffic['siteviews_pages'] + 1];
+            endif;
 
+            $updateSiteViews = new Update();
+            $updateSiteViews->ExeUpdate('ws_siteviews', $ArrSiteViews, "where siteviews_date = :date", "date={$this->Date}");
         endif;
+    }
+
+    // Verifica e atualiza os pageviews
+    private function TrafficUpdate() {
+        $this->getTraffic();
+        $ArrSiteViews = ['siteviews_pages' => $this->Traffic['siteviews_pages'] + 1];
+        $updatePageViews = new Update();
+        $updatePageViews->ExeUpdate('ws_siteviews', $ArrSiteViews, "where siteviews_date = :date", "date={$this->Date}");
     }
 
     // Obtem dados da tabela [ HELPER TRAFFIC ]
@@ -70,14 +98,13 @@ class Session {
 
     // Verifica, cria e atualiza Cookie do usuário [ HELPER TRAFFIC ]
     private function getCookie() {
+        setcookie("useronline", base64_encode("voicercore"), time() + 86400);
         $Cookie = filter_input(INPUT_COOKIE, 'useronline', FILTER_DEFAULT);
         if (!$Cookie):
             return FALSE;
         else:
             return TRUE;
         endif;
-
-        setcookie("useronline", base64_encode("voicercore"), time() + 86400);
     }
 
 }
