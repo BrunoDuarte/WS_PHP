@@ -140,7 +140,7 @@ body.painel{background: url(../images/header_bg.png) repeat-x #fbfbfb;}
 .post_actions li .act_delete{background: #eee url(../icons/act_delete.png) center center no-repeat;}
 
 /*FORM CADASTRO*/
-.form_create .msg{margin: 10px 0 15px 0;}
+.form_create .trigger{margin: 20px 0 25px 0;}
 .form_create article form{padding: 20px; background: #fff; margin-top: 10px;}
 .form_create article form .label{display: block; margin-bottom: 15px;}
 .form_create article form .field{display: block; margin-bottom: 5px; font-weight: 600;}
