@@ -41,6 +41,33 @@ class AdminCategory {
         endif;
     }
 
+    public function ExeDelete($CategoryId) {
+        $this->CatId = (int) $CategoryId;
+
+        $read = new Read();
+        $read->ExeRead(self::Entity, "where category_id = :delid", "delid={$this->CatId}");
+
+        if (!$read->getResult()):
+            $this->Result = FALSE;
+            $this->Error = ['Ops, você tentou remover uma categoria que não existe no sistema!', WS_INFOR];
+        else:
+            extract($read->getResult()[0]);
+            if (!$category_parent && !$this->checkCats()):
+                $this->Result = FALSE;
+                $this->Error = ["a sessão<b> {$category_title}</b> possui categorias cadastradas. Para deletar, antes altere ou remova as categorias filhas!", WS_ALERT];
+            elseif ($category_parent && !$this->checkPosts()):
+                $this->Result = FALSE;
+                $this->Error = ["a categoria<b> {$category_title}</b> possui artigos cadastrados. Para deletar, antes altere ou remova todos os posts desta categoria!", WS_ALERT];
+            else:
+                $delete = new Delete();
+                $delete->ExeDelete(self::Entity, "where category_id = :deletaid", "deletaid={$this->CatId}");
+                $tipo = ( empty($category_parent) ? 'sessão' : 'categoria' );
+                $this->Result = TRUE;
+                $this->Error = ["a {$tipo}<b> {$category_title}</b> foi removida com sucesso do sistema!", WS_ACCEPT];
+            endif;
+        endif;
+    }
+
     function getResult() {
         return $this->Result;
     }
@@ -64,6 +91,28 @@ class AdminCategory {
         $readName->ExeRead(self::Entity, "where {$Where} category_title = :t", "t={$this->Data['category_title']}");
         if ($readName->getResult()):
             $this->Data['category_name'] = $this->Data['category_name'] . '-' . $readName->getRowCount();
+        endif;
+    }
+
+    // Verifica categorias da sessão
+    private function checkCats() {
+        $readSes = new Read();
+        $readSes->ExeRead(self::Entity, "where category_parent = :parent", "parent={$this->CatId}");
+        if ($readSes->getResult()):
+            return FALSE;
+        else:
+            return TRUE;
+        endif;
+    }
+
+    // Verifica artigos da categoria
+    private function checkPosts() {
+        $readPosts = new Read();
+        $readPosts->ExeRead("ws_posts", "where post_category = :category", "category={$this->CatId}");
+        if ($readPosts->getResult()):
+            return FALSE;
+        else:
+            return TRUE;
         endif;
     }
 

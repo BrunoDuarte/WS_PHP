@@ -16,7 +16,7 @@ endif;
         <?php
         $data = filter_input_array(INPUT_POST, FILTER_DEFAULT);
         $catid = filter_input(INPUT_GET, 'catid', FILTER_VALIDATE_INT);
-        
+
         if (!empty($data['SendPostForm'])):
             unset($data['SendPostForm']);
 
@@ -28,11 +28,17 @@ endif;
         else:
             $read = new Read();
             $read->ExeRead("ws_categories", "where category_id = :id", "id={$catid}");
-            if(!$read->getResult()):
-                header("Location: painel.php?exe=categories/index&update=false");
+            if (!$read->getResult()):
+                header("Location: painel.php?exe=categories/index&empty=true");
             else:
                 $data = $read->getResult()[0];
             endif;
+        endif;
+
+        $checkCreate = filter_input(INPUT_GET, 'create', FILTER_VALIDATE_BOOLEAN);
+        if ($checkCreate):
+            $tipo = ( empty($data['category_parent']) ? 'seção' : 'categoria');
+            WSErro("A {$tipo} <b>{$data['category_title']}</b> foi cadastrada com sucesso no sistema! Continue atualizando a mesma!", WS_ACCEPT);
         endif;
         ?>
 
@@ -69,11 +75,11 @@ endif;
                         else:
                             foreach ($readSes->getResult() as $ses):
                                 echo "<option value=\"{$ses['category_id']}\"";
-                                
-                                if ($ses['category_id'] == $data['category_parent']): 
+
+                                if ($ses['category_id'] == $data['category_parent']):
                                     echo ' selected="selected" ';
                                 endif;
-                                
+
                                 echo "> {$ses['category_title']} </option>";
                             endforeach;
                         endif;

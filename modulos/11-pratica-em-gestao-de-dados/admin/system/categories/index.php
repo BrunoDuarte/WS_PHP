@@ -4,38 +4,87 @@
 
         <h1>Categorias:</h1>
 
-        <?php for ($i = 1; $i <= 3; $i++): ?>
-            <section>
+        <?php
+        $empty = filter_input(INPUT_GET, 'empty', FILTER_VALIDATE_BOOLEAN);
+        if ($empty):
+            WSErro("Você tentou editar uma categoria que não existe no sistema!", WS_INFOR);
+        endif;
+        
+        $delCat = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT);
+        if($delCat):
+            require '_models/AdminCategory.class.php';
+            $deletar = new AdminCategory();
+            $deletar->ExeDelete($delCat);
+            
+            WSErro($deletar->getError()[0], $deletar->getError()[1]);
+        endif;
+        
+        $readSes = new Read();
+        $readSes->ExeRead("ws_categories", "where category_parent is null order by category_title asc");
+        if (!$readSes->getResult()):
 
-                <header>
-                    <h1>Vídeo aulas:  <span>( 21 posts ) ( 3 Categorias )</span></h1>
-                    <p class="tagline">Venha aprender a criar sites profissionais com cursos gratuitos e video aulas de AJAX, PHP, WORDPRESS, TABLELESS, JQUERY e muito mais!</p>
+        else:
+            foreach ($readSes->getResult() as $ses):
+                extract($ses);
 
-                    <ul class="info post_actions">
-                        <li><strong>Data:</strong> <?= date('d/m/Y H:i'); ?>Hs</li>
-                        <li><a class="act_view" target="_blank" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Ver no site">Ver no site</a></li>
-                        <li><a class="act_edit" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Editar">Editar</a></li>
-                        <li><a class="act_delete" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Excluir">Deletar</a></li>
-                    </ul>
-                </header>
-                
-                <h2>Sub categorias de vídeo aulas:</h2>
+                $readPost = new Read();
+                $readPost->ExeRead("ws_posts", "where post_cat_parent = :parent", "parent={$category_id}");
 
-                <?php for ($a = 1; $a <= 3; $a++): ?>
-                <article<?php if($a%3==0) echo ' class="right"';?>>
-                        <h1><a target="_blank" href="../categoria/uri-da-categoria" title="Ver Categoria">Programação com PHP:</a>  ( 7 posts )</h1>
+                $readCats = new Read();
+                $readCats->ExeRead("ws_categories", "where category_parent = :parent", "parent={$category_id}");
+
+                $contSesPost = $readPost->getRowCount();
+                $contSesCat = $readCats->getRowCount();
+                ?>
+                <section>
+
+                    <header>
+                        <h1> <?= $category_title; ?>  <span>( <?= $contSesPost; ?> posts ) ( <?= $contSesCat; ?> Categorias )</span></h1>
+                        <p class="tagline"><?= $category_content; ?></p>
 
                         <ul class="info post_actions">
-                            <li><strong>Data:</strong> <?= date('d/m/Y H:i'); ?>Hs</li>
-                            <li><a class="act_view" target="_blank" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Ver no site">Ver no site</a></li>
-                            <li><a class="act_edit" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Editar">Editar</a></li>
-                            <li><a class="act_delete" href="painel.php?exe=posts/post&id=ID_DO_POST" title="Excluir">Deletar</a></li>
+                            <li><strong>Data:</strong> <?= date('d/m/Y H:i', strtotime($category_date)); ?>Hs</li>
+                            <li><a class="act_view" target="_blank" href="../categories/<?= $category_name; ?>" title="Ver no site">Ver no site</a></li>
+                            <li><a class="act_edit" href="painel.php?exe=categories/update&catid=<?= $category_id; ?>" title="Editar">Editar</a></li>
+                            <li><a class="act_delete" href="painel.php?exe=categories/index&delete=<?= $category_id; ?>" title="Excluir">Deletar</a></li>
                         </ul>
-                    </article>
-                <?php endfor; ?>
+                    </header>
 
-            </section>
-        <?php endfor; ?>
+                    <h2>Sub categorias de vídeo aulas:</h2>
+
+                    <?php
+                    $readSub = new Read();
+                    $readSub->ExeRead("ws_categories", "where category_parent = :subparent", "subparent={$category_id}");
+                    if (!$readSub->getResult()):
+
+                    else:
+                        $a = 0;
+                        foreach ($readSub->getResult() as $sub):
+                            $a++;
+
+                            $readCatPost = new Read();
+                            $readCatPost->ExeRead("ws_posts", "where post_category = :categoryid", "categoryid={$sub['category_id']}");
+                            ?>
+                            <article<?php if ($a % 3 == 0) echo ' class="right"'; ?>>
+                                <h1><a target="_blank" href="../categoria/<?= $sub['category_name']; ?>" title="Ver Categoria"><?= $sub['category_title']; ?></a>  ( <?= $readCatPost->getRowCount(); ?> )</h1>
+
+                                <ul class="info post_actions">
+                                    <li><strong>Data:</strong> <?= date('d/m/Y H:i', strtotime($sub['category_date'])); ?>Hs</li>
+                                    <li><a class="act_view" target="_blank" href="../categories/<?= $sub['category_name']; ?>" title="Ver no site">Ver no site</a></li>
+                                    <li><a class="act_edit" href="painel.php?exe=categories/update&catid=<?= $sub['category_id']; ?>" title="Editar">Editar</a></li>
+                                    <li><a class="act_delete" href="painel.php?exe=categories/index&delete=<?= $sub['category_id']; ?>" title="Excluir">Deletar</a></li>
+                                </ul>
+                            </article>
+                            <?php
+                        endforeach;
+                    endif;
+                    ?>
+
+                </section>
+                <?php
+            endforeach;
+        endif;
+        ?>
 
         <div class="clear"></div>
     </section>
