@@ -9,8 +9,15 @@
         <?php
         $post = filter_input_array(INPUT_POST, FILTER_DEFAULT);
         if (isset($post) && $post['SendPostForm']):
-
-            var_dump($post);
+            $post['post_status'] = ($post['SendPostForm'] == 'Cadastrar' ? '0' : '1');
+            $post['post_cover'] = ($_FILES['post_cover']['tmp_name'] ? $_FILES['post_cover'] : NULL);
+            unset($post['SendPostForm']);
+            
+            require '_models/AdminPost.class.php';
+            $cadastra = new AdminPost();
+            $cadastra->ExeCreate($post);
+            
+            var_dump($cadastra);
         endif;
         ?>
 
